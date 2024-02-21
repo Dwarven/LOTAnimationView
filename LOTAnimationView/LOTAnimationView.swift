@@ -85,6 +85,10 @@ import Lottie
         set { lottieView?.currentFrame = newValue }
     }
     
+    public override var contentMode: UIView.ContentMode {
+        didSet { lottieView?.contentMode = contentMode }
+    }
+    
     public override func layoutSubviews() {
         super.layoutSubviews()
         lottieView?.frame = bounds

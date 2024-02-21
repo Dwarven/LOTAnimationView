@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name             = 'LOTAnimationView'
-  s.version          = '0.0.1'
+  s.version          = '0.0.2'
   s.summary          = 'lottie api in LOTAnimationView style based on lottie-ios'
   s.homepage         = 'https://github.com/Dwarven/LOTAnimationView'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
