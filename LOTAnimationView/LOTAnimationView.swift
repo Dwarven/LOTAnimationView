@@ -100,16 +100,25 @@ import Lottie
     }
     
     public static func animation(bundleName: String?) -> LOTAnimationView {
-        animation(filePath: bundleInMain(with: bundleName)?.path(forResource: bundleName, ofType: "json"))
+        animation(bundleName: bundleName, assets: nil)
+    }
+    
+    public static func animation(bundleName: String?, assets: [String: Any]?) -> LOTAnimationView {
+        animation(filePath: bundleInMain(with: bundleName)?.path(forResource: bundleName, ofType: "json"), assets: assets)
     }
     
     public static func animation(filePath: String?) -> LOTAnimationView {
+        animation(filePath: filePath, assets: nil)
+    }
+    
+    public static func animation(filePath: String?, assets: [String: Any]?) -> LOTAnimationView {
         let view = LOTAnimationView()
         view.backgroundColor = .clear
-        if let path = filePath {
-            let lottieView = LottieAnimationView(filePath: path)
+        if let filePath {
+            let lottieView = LottieAnimationView(filePath: filePath)
             view.addSubview(lottieView)
             view.lottieView = lottieView
+            view.mergeAssets(assets)
         }
         return view
     }
@@ -261,5 +270,52 @@ extension LOTAnimationView {
         animation.loopMode = loopMode
         parent.addSubview(animation)
         return animation
+    }
+}
+
+extension LOTAnimationView {
+    public func mergeAssets(_ assets: [String: Any]?) {
+        guard
+            let assets, !assets.isEmpty,
+            let lottieView,
+            let imageProvider = AssetsMerger(assets: assets, last: lottieView.imageProvider)
+        else { return }
+        lottieView.imageProvider = imageProvider
+    }
+    
+    public func resetAssets() {
+        guard let ip = lottieView?.imageProvider as? AssetsMerger else { return }
+        lottieView?.imageProvider = ip.last
+    }
+    
+    private class AssetsMerger: AnimationImageProvider {
+        let assets: [String: Any]
+        let last: AnimationImageProvider
+        
+        init?(assets: [String: Any]?, last: AnimationImageProvider) {
+            guard let assets, assets.count > 0 else { return nil }
+            self.assets = (last as? AssetsMerger)?.assets.merging(assets) { _, new in new } ?? assets
+            self.last = (last as? AssetsMerger)?.last ?? last
+        }
+        
+        var cacheEligible: Bool {
+            last.cacheEligible
+        }
+        
+        func imageForAsset(asset: ImageAsset) -> CGImage? {
+            let i: UIImage? = switch assets[asset.name] {
+            case let i as UIImage:
+                i
+            case let p as String:
+                UIImage(contentsOfFile: p)
+            default:
+                nil
+            }
+            return i?.cgImage ?? last.imageForAsset(asset: asset)
+        }
+        
+        func contentsGravity(for asset: ImageAsset) -> CALayerContentsGravity {
+            last.contentsGravity(for: asset)
+        }
     }
 }
