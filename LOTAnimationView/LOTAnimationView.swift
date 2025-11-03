@@ -123,6 +123,33 @@ import Lottie
         return view
     }
     
+    public func update(bundleName: String?) {
+        update(bundleName: bundleName, assets: nil)
+    }
+    
+    public func update(bundleName: String?, assets: [String: Any]?) {
+        update(filePath: Self.bundleInMain(with: bundleName)?.path(forResource: bundleName, ofType: "json"), assets: assets)
+    }
+    
+    public func update(filePath: String?) {
+        update(filePath: filePath, assets: nil)
+    }
+    
+    public func update(filePath: String?, assets: [String: Any]?) {
+        guard let filePath else { return }
+        let assets = assets ?? (lottieView?.imageProvider as? AssetsMerger)?.assets
+        if let lottieView {
+            let view = LottieAnimationView(filePath: filePath)
+            lottieView.animation = view.animation
+            lottieView.imageProvider = view.imageProvider
+        } else {
+            let view = LottieAnimationView(filePath: filePath)
+            view.addSubview(view)
+            lottieView = view
+        }
+        mergeAssets(assets)
+    }
+    
     public func play() {
         play(completion: nil)
     }
